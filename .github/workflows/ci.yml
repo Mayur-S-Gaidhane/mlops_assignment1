@@ -1,38 +1,37 @@
-name: CI
+# .github/workflows/ci.yml
 
+name: MLOps Regression Workflow
+
+# This section defines the trigger for the workflow.
 on:
   push:
-    # Branch names must NOT contain spaces. Use literal names: reg and hyper.
-    branches: [ reg, hyper ]
+    branches:
+      - reg_branch # It will only run on a push to 'reg_branch'.
 
+# This section defines the jobs to be run.
 jobs:
-  build-test:
+  build-and-test:
+    # The type of virtual machine to run the job on.
     runs-on: ubuntu-latest
+
+    # The sequence of tasks to be executed.
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    # Step 1: Checks out your repository's code so the job can access it.
+    - name: Check out repository code
+      uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+    # Step 2: Sets up a specific version of Python.
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+    # Step 3: Installs the project dependencies from requirements.txt.
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
 
-      - name: Run pipeline (mode inferred from branch)
-        env:
-          # These are read by regression.py to infer mode automatically
-          GITHUB_REF_NAME: ${{ github.ref_name }}
-          GITHUB_REF: ${{ github.ref }}
-        run: |
-          echo "Branch: $GITHUB_REF_NAME"
-          python regression.py
-
-      - name: Upload metrics.csv
-        uses: actions/upload-artifact@v4
-        with:
-          name: metrics
-          path: metrics.csv
+    # Step 4: Runs the main Python script to train and evaluate models.
+    - name: Run regression model script
+      run: python regression.py
